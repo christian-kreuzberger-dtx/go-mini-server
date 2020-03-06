@@ -1,10 +1,12 @@
-FROM golang:1.12 as builder
+FROM golang:1.12.13-alpine as builder
 
 WORKDIR /go/src/github.com/christian-kreuzberger-dtx/go-mini-server
 
 # Force the go compiler to use modules
 ENV GO111MODULE=on
 ENV GOPROXY=https://proxy.golang.org
+
+RUN apk add --no-cache gcc libc-dev
 
 # Copy `go.mod` for definitions and `go.sum` to invalidate the next layer
 # in case of a change in the dependencies
@@ -22,7 +24,7 @@ COPY . .
 RUN GOOS=linux go build -ldflags '-linkmode=external' -v main.go
 
 # Use a Docker multi-stage build to create a lean production image.
-FROM alpine:3.7
+FROM alpine:3.11
 # we need to install ca-certificates and libc6-compat for go programs to work properly
 RUN apk add --no-cache ca-certificates libc6-compat
 
